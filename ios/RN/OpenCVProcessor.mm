@@ -14,7 +14,7 @@
     saveDemoFrame = false;
     processedFrames = 0;
     expectedFaceOrientation = -1;
-    objectsToDetect = 0; // face
+    objectsToDetect = -1;
     
     NSString *path = [[NSBundle mainBundle] pathForResource:@"lbpcascade_frontalface_improved.xml"
                                                      ofType:nil];

@@ -40,7 +40,7 @@ public class OpenCVProcessor {
     private int frame = 0;
     private Context reactContext;
     private int faceDetectionExpectedOrientation = -1;
-    private int objectsToDetect = 0;
+    private int objectsToDetect = -1;
     private boolean saveDemoFrame = false;
 
     public OpenCVProcessor(Context context) {
@@ -142,7 +142,7 @@ public class OpenCVProcessor {
 
     public SparseArray<Map<String, Float>> detect(byte[] imageData, int width, int height, int rotation) {
         if (this.frame % 15 == 0) {
-            SparseArray<Map<String, Float>> objects = new SparseArray();
+            SparseArray<Map<String, Float>> objects = null;
             Mat mat = new Mat((height / 2) + height, width, CvType.CV_8UC1);
             mat.put(0, 0, imageData);
 
