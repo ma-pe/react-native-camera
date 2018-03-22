@@ -6,6 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <AVFoundation/AVFoundation.h>
 #import "RNCameraManager.h"
 
 @interface RNCameraUtils : NSObject

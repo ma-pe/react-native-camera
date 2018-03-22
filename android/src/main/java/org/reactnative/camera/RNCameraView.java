@@ -69,7 +69,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   private final OpenCVProcessor openCVProcessor;
 
   public RNCameraView(ThemedReactContext themedReactContext) {
-    super(themedReactContext, true);
+    super(themedReactContext);
     initBarcodeReader();
     mThemedReactContext = themedReactContext;
 //    mFaceDetector = new RNFaceDetector(themedReactContext);
