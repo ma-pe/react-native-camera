@@ -1,13 +1,11 @@
 #import "RNCamera.h"
 #import "RNCameraUtils.h"
 #import "RNImageUtils.h"
-#import "RNCameraManager.h"
 #import "RNFileSystem.h"
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 #import <React/UIView+React.h>
-#import <AVFoundation/AVFoundation.h>
 
 
 @interface RNCamera ()
@@ -54,6 +52,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
                                                  selector:@selector(orientationChanged:)
                                                      name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
+        self.autoFocus = -1;
         //        [[NSNotificationCenter defaultCenter] addObserver:self
         //                                                 selector:@selector(bridgeDidForeground:)
         //                                                     name:EX_UNVERSIONED(@"EXKernelBridgeDidForegroundNotification")
@@ -214,7 +213,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     AVCaptureDevice *device = [self.videoCaptureDeviceInput device];
     NSError *error = nil;
     
-    if (device.focusMode != RNCameraAutoFocusOff) {
+    if (self.autoFocus < 0 || device.focusMode != RNCameraAutoFocusOff) {
         return;
     }
     
@@ -335,6 +334,17 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             CGRect cropRect = CGRectMake(frame.origin.x * width, frame.origin.y * height, frame.size.width * width, frame.size.height * height);
             takenImage = [RNImageUtils cropImage:takenImage toRect:cropRect];
             
+            if ([options[@"mirrorImage"] boolValue]) {
+                takenImage = [RNImageUtils mirrorImage:takenImage];
+            }
+            if ([options[@"forceUpOrientation"] boolValue]) {
+                takenImage = [RNImageUtils forceUpOrientation:takenImage];
+            }
+            
+            if ([options[@"width"] integerValue]) {
+                takenImage = [RNImageUtils scaleImage:takenImage toWidth:[options[@"width"] integerValue]];
+            }
+            
             NSMutableDictionary *response = [[NSMutableDictionary alloc] init];
             float quality = [options[@"quality"] floatValue];
             NSData *takenImageData = UIImageJPEGRepresentation(takenImage, quality);
@@ -346,21 +356,28 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             if ([options[@"base64"] boolValue]) {
                 response[@"base64"] = [takenImageData base64EncodedStringWithOptions:0];
             }
+
+            
             
             if ([options[@"exif"] boolValue]) {
                 int imageRotation;
                 switch (takenImage.imageOrientation) {
                     case UIImageOrientationLeft:
+                    case UIImageOrientationRightMirrored:
                         imageRotation = 90;
                         break;
                     case UIImageOrientationRight:
+                    case UIImageOrientationLeftMirrored:
                         imageRotation = -90;
                         break;
                     case UIImageOrientationDown:
+                    case UIImageOrientationDownMirrored:
                         imageRotation = 180;
                         break;
+                    case UIImageOrientationUpMirrored:
                     default:
                         imageRotation = 0;
+                        break;
                 }
                 [RNImageUtils updatePhotoMetadata:imageSampleBuffer withAdditionalData:@{ @"Orientation": @(imageRotation) } inResponse:response]; // TODO
             }
@@ -400,7 +417,21 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         
         AVCaptureConnection *connection = [self.movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
         [connection setVideoOrientation:[RNCameraUtils videoOrientationForInterfaceOrientation:[[UIApplication sharedApplication] statusBarOrientation]]];
-        
+
+        if (options[@"codec"]) {
+          AVVideoCodecType videoCodecType = options[@"codec"];
+          if (@available(iOS 10, *)) {
+            if ([self.movieFileOutput.availableVideoCodecTypes containsObject:videoCodecType]) {
+              [self.movieFileOutput setOutputSettings:@{AVVideoCodecKey:videoCodecType} forConnection:connection];
+              self.videoCodecType = videoCodecType;
+            } else {
+              RCTLogWarn(@"%s: Video Codec '%@' is not supported on this device.", __func__, videoCodecType);
+            }
+          } else {
+            RCTLogWarn(@"%s: Setting videoCodec is only supported above iOS version 10.", __func__);
+          }
+        }
+
         dispatch_async(self.sessionQueue, ^{
             NSString *path = [RNFileSystem generatePathInDirectory:[[RNFileSystem cacheDirectoryPath] stringByAppendingString:@"Camera"] withExtension:@".mov"];
             NSURL *outputURL = [[NSURL alloc] initFileURLWithPath:path];
@@ -734,12 +765,18 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         }
     }
     if (success && self.videoRecordedResolve != nil) {
-        self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString });
+      AVVideoCodecType videoCodec = self.videoCodecType;
+      if (videoCodec == nil) {
+        videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
+      }
+
+      self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
     } else if (self.videoRecordedReject != nil) {
         self.videoRecordedReject(@"E_RECORDING_FAILED", @"An error occurred while recording a video.", error);
     }
     self.videoRecordedResolve = nil;
     self.videoRecordedReject = nil;
+    self.videoCodecType = nil;
     
     [self cleanupMovieFileCapture];
     // If face detection has been running prior to recording to file

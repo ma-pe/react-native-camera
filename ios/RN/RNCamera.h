@@ -3,7 +3,6 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBridgeModule.h>
 #import <UIKit/UIKit.h>
-#import "RNCamera.h"
 
 #if __has_include("RNFaceDetectorManager.h")
 #import "RNFaceDetectorManager.h"
@@ -32,6 +31,7 @@
 @property (assign, nonatomic) float focusDepth;
 @property (assign, nonatomic) NSInteger whiteBalance;
 @property (nonatomic, assign, getter=isReadingBarCodes) BOOL barCodeReading;
+@property(assign, nonatomic) AVVideoCodecType videoCodecType;
 
 - (id)initWithBridge:(RCTBridge *)bridge;
 - (void)updateType;

@@ -38,12 +38,60 @@
     return image;
 }
 
++ (UIImage *)mirrorImage:(UIImage *)image
+{
+    UIImageOrientation flippedOrientation = UIImageOrientationUpMirrored;
+    switch (image.imageOrientation) {
+        case UIImageOrientationDown:
+            flippedOrientation = UIImageOrientationDownMirrored;
+            break;
+        case UIImageOrientationLeft:
+            flippedOrientation = UIImageOrientationRightMirrored;
+            break;
+        case UIImageOrientationUp:
+            flippedOrientation = UIImageOrientationUpMirrored;
+            break;
+        case UIImageOrientationRight:
+            flippedOrientation = UIImageOrientationLeftMirrored;
+            break;
+        default:
+            break;
+    }
+    UIImage * flippedImage = [UIImage imageWithCGImage:image.CGImage scale:image.scale orientation:flippedOrientation];
+    return flippedImage;
+}
+
 + (NSString *)writeImage:(NSData *)image toPath:(NSString *)path
 {
     [image writeToFile:path atomically:YES];
     NSURL *fileURL = [NSURL fileURLWithPath:path];
     return [fileURL absoluteString];
 }
+
++ (UIImage *) scaleImage:(UIImage*)image toWidth:(NSInteger)width
+{
+    width /= [UIScreen mainScreen].scale; // prevents image from being incorrectly resized on retina displays
+    float scaleRatio = (float) width / (float) image.size.width;
+    CGSize size = CGSizeMake(width, (int) (image.size.height * scaleRatio));
+    
+    UIGraphicsBeginImageContextWithOptions(size, NO, 0.0);
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return [UIImage imageWithCGImage:[newImage CGImage]  scale:1.0 orientation:(newImage.imageOrientation)];
+}
+
++ (UIImage *)forceUpOrientation:(UIImage *)image
+{
+    if (image.imageOrientation != UIImageOrientationUp) {
+        UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+        [image drawInRect:CGRectMake(0, 0, image.size.width, image.size.height)];
+        image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+    }
+    return image;
+} 
+
 
 + (void)updatePhotoMetadata:(CMSampleBufferRef)imageSampleBuffer withAdditionalData:(NSDictionary *)additionalData inResponse:(NSMutableDictionary *)response
 {

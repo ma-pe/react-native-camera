@@ -19,6 +19,12 @@ import { requestPermissions } from './handlePermissions';
 
 type PictureOptions = {
   quality?: number,
+  base64?: boolean,
+  mirrorImage?: boolean,
+  exif?: boolean,
+  width?: number,
+  fixOrientation?: boolean,
+  forceUpOrientation?: boolean,
 };
 
 type TrackedFaceFeature = FaceFeature & {
@@ -29,6 +35,8 @@ type RecordingOptions = {
   maxDuration?: number,
   maxFileSize?: number,
   quality?: number | string,
+  codec?: string,
+  mute?: boolean,
 };
 
 type EventCallbackArgumentsType = {
@@ -53,6 +61,7 @@ type PropsType = ViewPropTypes & {
   faceDetectionClassifications?: number,
   onFacesDetected?: ({ faces: Array<TrackedFaceFeature> }) => void,
   captureAudio?: boolean,
+  useCamera2Api?: boolean,
 };
 
 const CameraManager: Object = NativeModules.RNCameraManager ||
@@ -90,6 +99,7 @@ export default class Camera extends React.Component<PropsType> {
     AutoFocus: CameraManager.AutoFocus,
     WhiteBalance: CameraManager.WhiteBalance,
     VideoQuality: CameraManager.VideoQuality,
+    VideoCodec: CameraManager.VideoCodec,
     BarCodeType: CameraManager.BarCodeType,
     FaceDetection: CameraManager.FaceDetection,
   };
@@ -133,6 +143,7 @@ export default class Camera extends React.Component<PropsType> {
     notAuthorizedView: PropTypes.element,
     pendingAuthorizationView: PropTypes.element,
     captureAudio: PropTypes.bool,
+    useCamera2Api: PropTypes.bool,
   };
 
   static defaultProps: Object = {
@@ -179,6 +190,7 @@ export default class Camera extends React.Component<PropsType> {
       </View>
     ),
     captureAudio: false,
+    useCamera2Api: false,
   };
 
   _cameraRef: ?Object;
@@ -276,7 +288,7 @@ export default class Camera extends React.Component<PropsType> {
       hasVideoAndAudio,
       CameraManager,
       this.props.permissionDialogTitle,
-      this.props.permissionDialogMessage
+      this.props.permissionDialogMessage,
     );
     this.setState({ isAuthorized, isAuthorizationChecked: true });
   }
