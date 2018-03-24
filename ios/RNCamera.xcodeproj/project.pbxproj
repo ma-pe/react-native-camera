@@ -245,6 +245,7 @@
 					"$(SRCROOT)/../../../ios/**",
 					"${BUILT_PRODUCTS_DIR}/**",
 					"$(PROJECT_DIR)/../../../ios/**",
+					"${PROJECT_DIR}/../../react-native-opencv/ios/Frameworks/",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -300,6 +301,7 @@
 					"$(SRCROOT)/../../../ios/**",
 					"${BUILT_PRODUCTS_DIR}/**",
 					"$(PROJECT_DIR)/../../../ios/**",
+					"${PROJECT_DIR}/../../react-native-opencv/ios/Frameworks/",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
