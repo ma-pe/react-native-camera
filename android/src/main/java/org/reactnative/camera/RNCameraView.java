@@ -40,6 +40,7 @@ import org.reactnative.camera.utils.ImageDimensions;
 import org.reactnative.camera.utils.RNFileUtils;
 import org.reactnative.facedetector.RNFaceDetector;
 import org.reactnative.opencv.OpenCVProcessor;
+import android.util.Log;
 
 public class RNCameraView extends CameraView implements LifecycleEventListener, BarCodeScannerAsyncTaskDelegate, OpenCVProcessorAsyncTaskDelegate {
   private ThemedReactContext mThemedReactContext;
@@ -69,7 +70,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   private final OpenCVProcessor openCVProcessor;
 
   public RNCameraView(ThemedReactContext themedReactContext) {
-    super(themedReactContext, true);
+    super(themedReactContext, false);
     initBarcodeReader();
     mThemedReactContext = themedReactContext;
 //    mFaceDetector = new RNFaceDetector(themedReactContext);
@@ -181,6 +182,10 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
       if (options.hasKey("quality")) {
         profile = RNCameraViewHelper.getCamcorderProfile(options.getInt("quality"));
       }
+
+      profile.audioChannels = 1;
+      profile.audioSampleRate = 44100;
+      profile.videoBitRate = 5000000;
 
       boolean recordAudio = !options.hasKey("mute");
 
