@@ -35,6 +35,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     if ((self = [super init])) {
         self.bridge = bridge;
         self.session = [AVCaptureSession new];
+        self.audioSession = [AVAudioSession sharedInstance];
+        [self optimizeAudio];
+        
         self.sessionQueue = dispatch_queue_create("cameraQueue", DISPATCH_QUEUE_SERIAL);
         //        self.faceDetectorManager = [self createFaceDetectorManager];
         self.openCVProcessor = [[OpenCVProcessor new] initWithDelegate:self];
@@ -356,7 +359,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             if ([options[@"base64"] boolValue]) {
                 response[@"base64"] = [takenImageData base64EncodedStringWithOptions:0];
             }
-
+            
             
             
             if ([options[@"exif"] boolValue]) {
@@ -389,6 +392,14 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     }];
 }
 
+-(void)optimizeAudio
+{
+    [self.audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [self.audioSession setActive:YES error:nil];
+    [self.audioSession setInputGain:1.0 error:nil];
+    [self.audioSession setMode:AVAudioSessionModeMeasurement error:nil];
+}
+
 - (void)record:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
     if (_movieFileOutput == nil) {
@@ -417,23 +428,25 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         
         AVCaptureConnection *connection = [self.movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
         [connection setVideoOrientation:[RNCameraUtils videoOrientationForInterfaceOrientation:[[UIApplication sharedApplication] statusBarOrientation]]];
-
+        
         if (options[@"codec"]) {
-          AVVideoCodecType videoCodecType = options[@"codec"];
-          if (@available(iOS 10, *)) {
-            if ([self.movieFileOutput.availableVideoCodecTypes containsObject:videoCodecType]) {
-              [self.movieFileOutput setOutputSettings:@{AVVideoCodecKey:videoCodecType} forConnection:connection];
-              self.videoCodecType = videoCodecType;
+            AVVideoCodecType videoCodecType = options[@"codec"];
+            if (@available(iOS 10, *)) {
+                if ([self.movieFileOutput.availableVideoCodecTypes containsObject:videoCodecType]) {
+                    [self.movieFileOutput setOutputSettings:@{AVVideoCodecKey:videoCodecType} forConnection:connection];
+                    self.videoCodecType = videoCodecType;
+                } else {
+                    RCTLogWarn(@"%s: Video Codec '%@' is not supported on this device.", __func__, videoCodecType);
+                }
             } else {
-              RCTLogWarn(@"%s: Video Codec '%@' is not supported on this device.", __func__, videoCodecType);
+                RCTLogWarn(@"%s: Setting videoCodec is only supported above iOS version 10.", __func__);
             }
-          } else {
-            RCTLogWarn(@"%s: Setting videoCodec is only supported above iOS version 10.", __func__);
-          }
         }
-
+        
         dispatch_async(self.sessionQueue, ^{
             [self updateFlashMode];
+            [self optimizeAudio];
+            
             NSString *path = [RNFileSystem generatePathInDirectory:[[RNFileSystem cacheDirectoryPath] stringByAppendingString:@"Camera"] withExtension:@".mov"];
             NSURL *outputURL = [[NSURL alloc] initFileURLWithPath:path];
             [self.movieFileOutput startRecordingToOutputFileURL:outputURL recordingDelegate:self];
@@ -766,12 +779,12 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         }
     }
     if (success && self.videoRecordedResolve != nil) {
-      AVVideoCodecType videoCodec = self.videoCodecType;
-      if (videoCodec == nil) {
-        videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
-      }
-
-      self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
+        AVVideoCodecType videoCodec = self.videoCodecType;
+        if (videoCodec == nil) {
+            videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
+        }
+        
+        self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
     } else if (self.videoRecordedReject != nil) {
         self.videoRecordedReject(@"E_RECORDING_FAILED", @"An error occurred while recording a video.", error);
     }
