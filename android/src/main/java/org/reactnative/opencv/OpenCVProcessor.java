@@ -159,6 +159,9 @@ public class OpenCVProcessor {
                     break;
             }
 
+            mat.release();
+            grayMat.release();
+
             return objects;
         }
         return null;
@@ -196,6 +199,8 @@ public class OpenCVProcessor {
                 faces.append(i, face);
             }
         }
+
+        rec.release();
 
         return faces;
     }
@@ -244,7 +249,8 @@ public class OpenCVProcessor {
         morphologyEx(processedImage, processedImage, Imgproc.MORPH_CLOSE, rectKernel);
         Imgproc.threshold(processedImage, processedImage, 0, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
         // , 1, 1
-        Imgproc.erode(processedImage, processedImage, new Mat(), new Point(-1, -1), 2);
+        Mat dummyMat = new Mat();
+        Imgproc.erode(processedImage, processedImage, dummyMat, new Point(-1, -1), 2);
 
 
         // Perform another closing operation, this time using the square kernel to close gaps
@@ -266,8 +272,12 @@ public class OpenCVProcessor {
         List<RotatedRect> minRects = new ArrayList<>();
         for (int i = 0, I = contours.size(); i < I; ++i) {
             // Filter by provided area limits
-            if (Imgproc.contourArea(contours.get(i)) > minContourArea && Imgproc.contourArea(contours.get(i)) < maxContourArea)
-                minRects.add(Imgproc.minAreaRect(new MatOfPoint2f(contours.get(i).toArray())));
+            if (Imgproc.contourArea(contours.get(i)) > minContourArea && Imgproc.contourArea(contours.get(i)) < maxContourArea){
+                MatOfPoint2f mop2f = new MatOfPoint2f(contours.get(i).toArray());
+                minRects.add(Imgproc.minAreaRect(mop2f));
+
+                mop2f.release();
+            }
         }
 
         if(saveDemoFrame){
@@ -307,6 +317,10 @@ public class OpenCVProcessor {
                 }
             }
         }
+
+        imageGrad.release();
+        dummyMat.release();
+        hierarchy.release();
 
         return objects;
     }
