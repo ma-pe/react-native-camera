@@ -141,6 +141,7 @@ public class OpenCVProcessor {
     }
 
     public SparseArray<Map<String, Float>> detect(byte[] imageData, int width, int height, int rotation) {
+        this.frame = this.frame + 1;
         if (this.frame % 15 == 0) {
             SparseArray<Map<String, Float>> objects = null;
             Mat mat = new Mat((height / 2) + height, width, CvType.CV_8UC1);
@@ -160,7 +161,6 @@ public class OpenCVProcessor {
 
             return objects;
         }
-        this.frame++;
         return null;
     }
 
