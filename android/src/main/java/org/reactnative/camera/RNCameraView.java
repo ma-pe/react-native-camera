@@ -183,9 +183,9 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
         profile = RNCameraViewHelper.getCamcorderProfile(options.getInt("quality"));
       }
 
-      profile.audioChannels = 1;
-      profile.audioSampleRate = 44100;
-      profile.videoBitRate = 5000000;
+//      profile.audioChannels = 1;
+//      profile.audioSampleRate = 44100;
+//      profile.videoBitRate = 5000000;
 
       boolean recordAudio = !options.hasKey("mute");
 
