@@ -191,8 +191,8 @@ public class OpenCVProcessor {
 
             for (int i = 0; i < detectedObjects.length; i++) {
                 Map<String, Float> face = new HashMap();
-                face.put("x", detectedObjects[i].x / imageWidth);
-                face.put("y", detectedObjects[i].y / imageHeight);
+                face.put("x", (float)(detectedObjects[i].x + 0.5 * detectedObjects[i].width) / imageWidth);
+                face.put("y", (float)(detectedObjects[i].y + 0.5 * detectedObjects[i].height) / imageHeight);
                 face.put("width", detectedObjects[i].width / imageWidth);
                 face.put("height", detectedObjects[i].height / imageHeight);
                 face.put("orientation", (float) expectedFaceOrientation);
@@ -298,10 +298,10 @@ public class OpenCVProcessor {
                 Point[] rect_points = new Point[4];
                 minRects.get(i).points( rect_points );
 
-                float xRel = (float) rect_points[1].x / imageWidth;
-                float yRel = (float) rect_points[1].y / imageHeight;
                 float widthRel = (float) Math.abs(rect_points[3].x - rect_points[1].x) / imageWidth;
                 float heightRel = (float) Math.abs(rect_points[3].y - rect_points[1].y) / imageHeight;
+                float xRel = (float) (rect_points[1].x + widthRel) / imageWidth;
+                float yRel = (float) (rect_points[1].y + heightRel) / imageHeight;
                 float sizeRel = Math.abs(widthRel * heightRel);
                 float ratio =  (float) Math.abs(rect_points[3].x - rect_points[1].x) / (float) Math.abs(rect_points[3].y - rect_points[1].y);
 
