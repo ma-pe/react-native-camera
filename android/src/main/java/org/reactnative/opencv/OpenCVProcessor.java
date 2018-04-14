@@ -300,8 +300,8 @@ public class OpenCVProcessor {
 
                 float widthRel = (float) Math.abs(rect_points[3].x - rect_points[1].x) / imageWidth;
                 float heightRel = (float) Math.abs(rect_points[3].y - rect_points[1].y) / imageHeight;
-                float xRel = (float) (rect_points[1].x + widthRel) / imageWidth;
-                float yRel = (float) (rect_points[1].y + heightRel) / imageHeight;
+                float xRel = (float) (rect_points[1].x + 0.5 * widthRel) / imageWidth;
+                float yRel = (float) (rect_points[1].y + 0.5 * heightRel) / imageHeight;
                 float sizeRel = Math.abs(widthRel * heightRel);
                 float ratio =  (float) Math.abs(rect_points[3].x - rect_points[1].x) / (float) Math.abs(rect_points[3].y - rect_points[1].y);
 
