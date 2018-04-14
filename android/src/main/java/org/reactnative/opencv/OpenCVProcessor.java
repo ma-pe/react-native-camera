@@ -298,12 +298,18 @@ public class OpenCVProcessor {
                 Point[] rect_points = new Point[4];
                 minRects.get(i).points( rect_points );
 
-                float widthRel = (float) Math.abs(rect_points[3].x - rect_points[1].x) / imageWidth;
-                float heightRel = (float) Math.abs(rect_points[3].y - rect_points[1].y) / imageHeight;
-                float xRel = (float) (rect_points[1].x + 0.5 * widthRel) / imageWidth;
-                float yRel = (float) (rect_points[1].y + 0.5 * heightRel) / imageHeight;
-                float sizeRel = Math.abs(widthRel * heightRel);
-                float ratio =  (float) Math.abs(rect_points[3].x - rect_points[1].x) / (float) Math.abs(rect_points[3].y - rect_points[1].y);
+                if (minRects.get(i).angle < -45.) {
+                    float newHeight = (float) minRects.get(i).size.width;
+                    minRects.get(i).size.width = minRects.get(i).size.height;
+                    minRects.get(i).size.height = newHeight;
+                }
+
+                float xRel = (float) minRects.get(i).center.x / imageWidth;
+                float yRel = (float) minRects.get(i).center.y / imageHeight;
+                float widthRel = (float) minRects.get(i).size.width / imageWidth;
+                float heightRel = (float) minRects.get(i).size.height / imageHeight;
+                float sizeRel = (float) Math.abs(widthRel * heightRel);
+                float ratio =  (float) minRects.get(i).size.width / (float) minRects.get(i).size.height;
 
                 // if object large enough
                 if(sizeRel >= 0.025 & ratio >= 5.5 & ratio <= 8.5){
