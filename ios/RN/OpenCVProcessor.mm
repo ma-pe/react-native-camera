@@ -51,42 +51,44 @@
 
 - (void)saveImageToDisk:(Mat&)image;
 {
-    NSLog(@"----------------SAVE IMAGE-----------------");
-    saveDemoFrame = false;
-    
-    NSData *data = [NSData dataWithBytes:image.data length:image.elemSize()*image.total()];
-    CGColorSpaceRef colorSpace;
-    
-    if (image.elemSize() == 1) {
-        colorSpace = CGColorSpaceCreateDeviceGray();
-    } else {
-        colorSpace = CGColorSpaceCreateDeviceRGB();
+    if(processedFrames == 20){
+        NSLog(@"----------------SAVE IMAGE-----------------");
+        saveDemoFrame = false;
+        
+        NSData *data = [NSData dataWithBytes:image.data length:image.elemSize()*image.total()];
+        CGColorSpaceRef colorSpace;
+        
+        if (image.elemSize() == 1) {
+            colorSpace = CGColorSpaceCreateDeviceGray();
+        } else {
+            colorSpace = CGColorSpaceCreateDeviceRGB();
+        }
+        
+        CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
+        
+        // Creating CGImage from cv::Mat
+        CGImageRef imageRef = CGImageCreate(image.cols,                                 //width
+                                            image.rows,                                 //height
+                                            8,                                          //bits per component
+                                            8 * image.elemSize(),                       //bits per pixel
+                                            image.step[0],                            //bytesPerRow
+                                            colorSpace,                                 //colorspace
+                                            kCGImageAlphaNone|kCGBitmapByteOrderDefault,// bitmap info
+                                            provider,                                   //CGDataProviderRef
+                                            NULL,                                       //decode
+                                            false,                                      //should interpolate
+                                            kCGRenderingIntentDefault                   //intent
+                                            );
+        
+        
+        // Getting UIImage from CGImage
+        UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
+        CGImageRelease(imageRef);
+        CGDataProviderRelease(provider);
+        CGColorSpaceRelease(colorSpace);
+        
+        UIImageWriteToSavedPhotosAlbum(finalImage, nil, nil, nil);
     }
-    
-    CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-    
-    // Creating CGImage from cv::Mat
-    CGImageRef imageRef = CGImageCreate(image.cols,                                 //width
-                                        image.rows,                                 //height
-                                        8,                                          //bits per component
-                                        8 * image.elemSize(),                       //bits per pixel
-                                        image.step[0],                            //bytesPerRow
-                                        colorSpace,                                 //colorspace
-                                        kCGImageAlphaNone|kCGBitmapByteOrderDefault,// bitmap info
-                                        provider,                                   //CGDataProviderRef
-                                        NULL,                                       //decode
-                                        false,                                      //should interpolate
-                                        kCGRenderingIntentDefault                   //intent
-                                        );
-    
-    
-    // Getting UIImage from CGImage
-    UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
-    CGImageRelease(imageRef);
-    CGDataProviderRelease(provider);
-    CGColorSpaceRelease(colorSpace);
-    
-    UIImageWriteToSavedPhotosAlbum(finalImage, nil, nil, nil);
 }
 
 - (int)rotateImage:(Mat&)image;
@@ -138,21 +140,27 @@
 {
     int orientation = [self rotateImage:image];
     
-    float imageWidth = 480.;
+    float imageWidth = 540.;
     [self resizeImage:image width:imageWidth];
     float imageHeight = (float)image.rows;
     
+    // Enhance the contrast of the image using CLAHE
+    Mat imageGrayClahe;
+    Ptr<CLAHE> clahe = createCLAHE();
+    clahe->setClipLimit(10);
+    clahe->apply(image,imageGrayClahe);
+    
     if(saveDemoFrame){
-        [self saveImageToDisk:image];
+        [self saveImageToDisk:imageGrayClahe];
     }
     
     objects.clear();
-    cascade.detectMultiScale(image,
+    cascade.detectMultiScale(imageGrayClahe,
                              objects,
-                             1.2,
+                             1.1,
                              3,
                              0,
-                             cv::Size(10, 10));
+                             cv::Size(30, 30));
     
     NSMutableArray *faces = [[NSMutableArray alloc] initWithCapacity:objects.size()];
     if(objects.size() > 0){

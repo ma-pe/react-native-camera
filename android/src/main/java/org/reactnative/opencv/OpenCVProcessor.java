@@ -28,6 +28,7 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.CLAHE;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.reactnative.camera.R;
@@ -171,19 +172,25 @@ public class OpenCVProcessor {
         SparseArray<Map<String, Float>> faces = new SparseArray();
         int expectedFaceOrientation = rotateImage(image, rotation);
 
-        float imageWidth = 480f;
-        float scale = resizeImage(image, imageWidth);
+        float imageWidth = 540f;
+        resizeImage(image, imageWidth);
 
         float imageHeight = image.rows();
+
+        // Enhance the contrast of the image using CLAHE
+        Mat imageGrayClahe = new Mat();
+        CLAHE clahe = Imgproc.createCLAHE();
+        clahe.setClipLimit(10);
+        clahe.apply(image, imageGrayClahe);
 
         // Save Demo Frame
         if (saveDemoFrame && this.frame == 30) {
             Log.d(ReactConstants.TAG, "---SAVE IMAGE!!--- ");
-            saveMatToDisk(image);
+            saveMatToDisk(imageGrayClahe);
         }
 
         MatOfRect rec = new MatOfRect();
-        this.faceDetector.detectMultiScale(image, rec, 1.3, 3, 0, new Size(50, 50), new Size());
+        this.faceDetector.detectMultiScale(imageGrayClahe, rec, 1.1, 3, 0, new Size(30, 30), new Size());
 
         Rect[] detectedObjects = rec.toArray();
         if (detectedObjects.length > 0) {
