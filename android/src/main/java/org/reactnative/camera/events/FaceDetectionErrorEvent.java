@@ -37,7 +37,7 @@ public class FaceDetectionErrorEvent extends Event<FaceDetectionErrorEvent> {
 
   @Override
   public String getEventName() {
-    return CameraViewManager.Events.EVENT_ON_MOUNT_ERROR.toString();
+    return CameraViewManager.Events.EVENT_ON_FACE_DETECTION_ERROR.toString();
   }
 
   @Override

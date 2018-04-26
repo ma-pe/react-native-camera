@@ -23,6 +23,7 @@
 @property (nonatomic, copy) RCTDirectEventBlock onMountError;
 @property (nonatomic, copy) RCTDirectEventBlock onBarCodeRead;
 @property (nonatomic, copy) RCTDirectEventBlock onFacesDetected;
+@property (nonatomic, copy) RCTDirectEventBlock onRecordingStarted;
 
 @end
 
@@ -450,6 +451,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             NSString *path = [RNFileSystem generatePathInDirectory:[[RNFileSystem cacheDirectoryPath] stringByAppendingString:@"Camera"] withExtension:@".mov"];
             NSURL *outputURL = [[NSURL alloc] initFileURLWithPath:path];
             [self.movieFileOutput startRecordingToOutputFileURL:outputURL recordingDelegate:self];
+            if (_onRecordingStarted) {
+                _onRecordingStarted(@{});
+            }
             self.videoRecordedResolve = resolve;
             self.videoRecordedReject = reject;
         });

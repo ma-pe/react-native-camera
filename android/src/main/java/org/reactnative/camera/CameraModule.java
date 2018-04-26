@@ -202,13 +202,13 @@ public class CameraModule extends ReactContextBaseJavaModule {
                             promise.reject("E_CAMERA_UNAVAILABLE", "Camera is not running");
                         }
                     } else {
-                      Bitmap image = RNCameraViewHelper.generateSimulatorPhoto(cameraView.getWidth(), cameraView.getHeight());
+                        Bitmap image = RNCameraViewHelper.generateSimulatorPhoto(cameraView.getWidth(), cameraView.getHeight());
 
-                      ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                      image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                      byte[] byteArray = stream.toByteArray();
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                        byte[] byteArray = stream.toByteArray();
 
-                      new ResolveTakenPictureAsyncTask(byteArray, promise, options, cacheDirectory).execute();
+                        new ResolveTakenPictureAsyncTask(byteArray, promise, options, cacheDirectory).execute();
                     }
                 } catch (Exception e) {
                     promise.reject("E_CAMERA_BAD_VIEWTAG", "takePictureAsync: Expected a Camera component");

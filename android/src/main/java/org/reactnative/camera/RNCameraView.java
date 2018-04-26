@@ -62,6 +62,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   //  private final RNFaceDetector mFaceDetector;
   private boolean mShouldDetectFaces = false;
   private boolean mShouldScanBarCodes = false;
+  private CameraView mCameraView = null;
   private int mFaceDetectionExpectedOrientation = -1;
   private int mObjectsToDetect = 0;
   private int mFaceDetectorMode = RNFaceDetector.FAST_MODE;
@@ -81,6 +82,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
     addCallback(new Callback() {
       @Override
       public void onCameraOpened(CameraView cameraView) {
+        mCameraView = cameraView;
         RNCameraViewHelper.emitCameraReadyEvent(cameraView);
       }
 
@@ -189,6 +191,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
 
       boolean recordAudio = !options.hasKey("mute");
 
+      RNCameraViewHelper.emitRecordingStartedEvent(mCameraView);
       if (super.record(path, maxDuration * 1000, maxFileSize, recordAudio, profile)) {
         mVideoRecordedPromise = promise;
       } else {
