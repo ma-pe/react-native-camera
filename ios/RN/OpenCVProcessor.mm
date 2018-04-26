@@ -574,4 +574,3 @@ struct line_more {
 #endif
 
 @end
-

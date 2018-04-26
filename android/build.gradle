@@ -44,5 +44,5 @@ dependencies {
   compile 'com.google.android.gms:play-services-vision:+'
   compile "com.android.support:exifinterface:+"
   compile project(':openCVLibrary340')
-  compile 'com.github.react-native-community:cameraview:eb9f726215bbbfcc03a54db92e480d4d02e0c001'
+  compile 'com.github.ma-pe:cameraview:master'
 }
