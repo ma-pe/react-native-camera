@@ -19,7 +19,8 @@ public class CameraViewManager extends ViewGroupManager<RNCameraView> {
     EVENT_ON_MOUNT_ERROR("onMountError"),
     EVENT_ON_BAR_CODE_READ("onBarCodeRead"),
     EVENT_ON_FACES_DETECTED("onFacesDetected"),
-    EVENT_ON_FACE_DETECTION_ERROR("onFaceDetectionError");
+    EVENT_ON_FACE_DETECTION_ERROR("onFaceDetectionError"),
+    EVENT_ON_RECORDING_STARTED("onRecordingStarted");
 
     private final String mName;
 
