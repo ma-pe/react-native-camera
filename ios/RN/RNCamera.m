@@ -395,7 +395,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
 
 -(void)optimizeAudio
 {
-    [self.audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [self.audioSession setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
     [self.audioSession setActive:YES error:nil];
     [self.audioSession setInputGain:1.0 error:nil];
     [self.audioSession setMode:AVAudioSessionModeMeasurement error:nil];
